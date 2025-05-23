@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop - Kilimall Clone</title>
+  <title>Product Details - Kilimall Clone</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
       <h1 class="logo">Kilimall</h1>
       <ul class="nav-links">
         <li><a href="index.html">Home</a></li>
-        <li><a href="products.html" class="active">Shop</a></li>
+        <li><a href="products.html">Shop</a></li>
         <li><a href="cart.html">Cart</a></li>
         <li><a href="login.html">Login</a></li>
       </ul>
@@ -20,11 +20,8 @@
   </header>
 
   <main>
-    <section class="product-list">
-      <h2>All Products</h2>
-      <div class="product-grid" id="product-grid">
-        <!-- JavaScript will inject products here -->
-      </div>
+    <section class="product-detail" id="product-detail">
+      <!-- Product details will be loaded here -->
     </section>
   </main>
 
@@ -33,23 +30,39 @@
   </footer>
 
   <script>
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('id');
     const products = JSON.parse(localStorage.getItem('products')) || [];
-    const grid = document.getElementById('product-grid');
+    const product = products.find(p => p.id == productId);
+    const container = document.getElementById('product-detail');
 
-    if (products.length === 0) {
-      grid.innerHTML = '<p>No products available.</p>';
+    if (product) {
+      container.innerHTML = `
+        <div class="product-box">
+          <img src="${product.image}" alt="${product.name}" class="product-img-large">
+          <div class="product-info">
+            <h2>${product.name}</h2>
+            <p class="price">$${product.price.toFixed(2)}</p>
+            <p class="description">${product.description || 'No description provided.'}</p>
+            <button class="btn" onclick="addToCart(${product.id})">Add to Cart</button>
+          </div>
+        </div>
+      `;
     } else {
-      products.forEach(product => {
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        card.innerHTML = `
-          <img src="${product.image}" alt="${product.name}" class="product-img">
-          <h3>${product.name}</h3>
-          <p>$${product.price.toFixed(2)}</p>
-          <a href="product.html?id=${product.id}" class="btn">View</a>
-        `;
-        grid.appendChild(card);
-      });
+      container.innerHTML = '<p>Product not found.</p>';
+    }
+
+    function addToCart(id) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const item = cart.find(p => p.id == id);
+      if (item) {
+        item.qty += 1;
+      } else {
+        const product = products.find(p => p.id == id);
+        cart.push({ ...product, qty: 1 });
+      }
+      localStorage.setItem('cart', JSON.stringify(cart));
+      alert('Product added to cart!');
     }
   </script>
 </body>
